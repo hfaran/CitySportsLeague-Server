@@ -1,15 +1,13 @@
-#!/usr/bin/env python2.7
-
-
 from datetime import date
+
 from pony.orm import Database, PrimaryKey, Required, Optional, sql_debug, \
     LongStr, Set
 
 
-db = Database("sqlite", "welikesports.sqlite", create_db=True)
+database = Database()
 
 
-class User(db.Entity):
+class User(database.Entity):
     id = PrimaryKey(int, auto=True)
     first = Required(str)
     last = Required(str)
@@ -21,26 +19,22 @@ class User(db.Entity):
     bio = Optional(LongStr)
 
 
-class Sport(db.Entity):
+class Sport(database.Entity):
     name = PrimaryKey(str)
     players_per_team = Required(int)
     games = Set("Game")
 
 
-class Team(db.Entity):
+class Team(database.Entity):
     name = PrimaryKey(str)
     users = Set(User)
     games = Set("Game")
 
 
-class Game(db.Entity):
+class Game(database.Entity):
     id = PrimaryKey(int, auto=True)
     location = Required(str)
     date = Required(date)
     final_score = Required(str)
     sport = Required(Sport)
     teams = Set(Team)
-
-
-sql_debug(True)
-db.generate_mapping(create_tables=True)
