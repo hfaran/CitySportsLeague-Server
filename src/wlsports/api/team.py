@@ -1,3 +1,6 @@
+from collections import defaultdict
+from random import choice, randint
+
 from tornado_json.exceptions import api_assert, APIError
 from tornado_json import schema
 from pony.orm import db_session, CommitException, select
@@ -6,7 +9,9 @@ from tornado.web import authenticated
 from wlsports.db import Team as TeamEntity
 from wlsports.db import Player as PlayerEntity
 from wlsports.db import Sport as SportEntity
+from wlsports.db import Sport as GameEntity
 from wlsports.handlers import APIHandler
+from wlsports.util import invert_dict_nonunique
 
 
 class Team(APIHandler):
@@ -34,7 +39,7 @@ class Team(APIHandler):
         PUT to create a team
 
         * `name`
-        * `usernames`: list of teammates to add (except yourself)
+        * `usernames`: list of players in team (INCLUDING YOURSELF!!)
         * `sport`: One of "Basketball" or "Soccer"
         """
         attrs = dict(self.body)
@@ -50,10 +55,6 @@ class Team(APIHandler):
             # Add team mates
             players = []
             for pname in attrs["usernames"]:
-                # Skip self (only add teammates)
-                if pname == self.get_current_user():
-                    continue
-
                 player = PlayerEntity.get(username=pname)
                 api_assert(
                     player is not None,
@@ -61,9 +62,6 @@ class Team(APIHandler):
                     log_message="No player exists with name {}!".format(pname)
                 )
                 players.append(player)
-            # Add self
-            player = PlayerEntity[self.get_current_user()]
-            players.append(player)
 
             # Get sport
             sport = SportEntity[attrs['sport']]
@@ -72,7 +70,11 @@ class Team(APIHandler):
             team = TeamEntity(
                 name=attrs['name'],
                 users=players,
-                sport=sport
+                sport=sport,
+                wins=0,
+                losses=0,
+                ties=0,
+                points_ratio=0.0
             )
 
             return {'name': team.name}
@@ -109,3 +111,93 @@ class Team(APIHandler):
                 "name": name,
                 "sport": sport_name
             }
+
+
+class Matchmake(APIHandler):
+
+    @authenticated
+    @schema.validate(
+        input_schema={
+            "type": "object",
+            "properties": {
+                "team_name": {"type": "string"}
+            }
+        },
+        output_schema={
+            "type": "object",
+            "properties": {
+                "game_id": {"type": "string"}
+            }
+        }
+    )
+    def post(self):
+        """
+        Does matchmaking by finding a rival team for the provided `team_name`,
+        creates a new game with the two teams and returns the game_id
+        for that game
+        """
+        team_name = self.body['team_name']
+        with db_session:
+            myteam = TeamEntity.get(name=team_name)
+            sport_name = myteam.sport.name
+            if myteam is None:
+                raise APIError(
+                    400,
+                    log_message="Team with name {} does not exist!"
+                    .format(team_name)
+                )
+
+            ### Figure out rival team
+
+            # Find teams that are of the same sport and also
+            # that they don't contain any players from myteam
+            sport_teams = select(team for team in TeamEntity
+                                 if team.sport.name == sport_name)[:]
+            print sport_teams, [player.username for team in sport_teams for player in team.users]
+            myteam_names = [player.username for player in myteam.users]
+            sport_teams = [team for team in sport_teams if all(
+                player.username not in myteam_names for player in team.users
+            )]
+            print sport_teams
+            num_teams = len(sport_teams)
+            api_assert(
+                num_teams > 1,
+                409,
+                "There are no other teams with all different people!"
+            )
+
+            overall_rankings = defaultdict(lambda: 0)
+
+            teams_wlratio = sorted([
+                (team, float(team.wins) / team.losses)
+                for team in sport_teams
+            ], key=lambda t: t[1], reverse=True)
+            for i, (team, wlratio) in enumerate(teams_wlratio):
+                overall_rankings[team.name] += i
+            teams_pointsratio = sorted([
+                (team, team.points_ratio) for team in sport_teams
+            ], key=lambda t: t[1], reverse=True)
+            for i, (team, points_ratio) in enumerate(teams_pointsratio):
+                overall_rankings[team.name] += i
+
+            myranking = overall_rankings[myteam.name]
+            ranking_vals = overall_rankings.values()
+
+            who_you_verse_index = None
+            while (who_you_verse_index not in ranking_vals or
+                   who_you_verse_index == myranking):
+                who_you_verse_index = randint(
+                    max(myranking - 5, 1),
+                    min(myranking + 5, num_teams - 2)
+                )
+
+            rankings_by_ranking = invert_dict_nonunique(overall_rankings)
+            rival_team_name = rankings_by_ranking[who_you_verse_index][0]
+            rival_team = TeamEntity[rival_team_name]
+
+            game = GameEntity(
+                teams=[myteam, rival_team],
+                host=PlayerEntity[self.get_current_user()]
+            )
+
+            return {"game_id", game.id}

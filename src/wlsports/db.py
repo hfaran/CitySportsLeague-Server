@@ -36,6 +36,11 @@ class Team(database.Entity):
     games = Set("Game")
     sport = Required(Sport)
 
+    wins = Required(int)
+    losses = Required(int)
+    ties = Required(int)
+    points_ratio = Required(float)
+
 
 class Game(database.Entity):
     id = PrimaryKey(int, auto=True)
@@ -51,7 +56,7 @@ class Game(database.Entity):
     final_score = Optional(str)
 
 
-def _bind_db(db="../welikesports.sqlite", debug=True):
+def _bind_db(db="../../welikesports.sqlite", debug=True):
     if debug:
         sql_debug(True)
     database.bind("sqlite", db, create_db=True)
