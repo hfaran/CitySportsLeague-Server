@@ -7,10 +7,12 @@ from pony.orm import Database, PrimaryKey, Required, Optional, sql_debug, \
 database = Database()
 
 
-class User(database.Entity):
-    id = PrimaryKey(int, auto=True)
+class Player(database.Entity):
+    username = PrimaryKey(str)
+    salt = Required(str)
     first = Required(str)
     last = Required(str)
+    password = Required(str)
     birthday = Required(date)
     gender = Optional(str)
     teams = Set("Team")
@@ -27,7 +29,7 @@ class Sport(database.Entity):
 
 class Team(database.Entity):
     name = PrimaryKey(str)
-    users = Set(User)
+    users = Set(Player)
     games = Set("Game")
 
 
