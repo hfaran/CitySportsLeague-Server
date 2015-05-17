@@ -67,6 +67,11 @@ class Player(APIHandler):
 
         # Create player
         with db_session:
+            api_assert(
+                attrs['username'],
+                400,
+                log_message="Provided username is empty!"
+            )
             if PlayerEntity.get(username=attrs['username']):
                 raise APIError(
                     409,
@@ -100,19 +105,24 @@ class Me(APIHandler):
                 "city": {"type": "string"},
                 "country": {"type": "string"},
                 "bio": {"type": "string"},
+                "teams": {"type": "array"},
+                "accepted_games":{"type": "array"}
             }
         }
     )
     def get(self):
         """
         (Player only) GET to retrieve player info
+
+        * `games`: Array of game IDs that player has accepted
+        * `teams`: Array of team names
         """
         with db_session:
             player = PlayerEntity[self.get_current_user()]
-            player_dict = player.to_dict(exclude=[
-                "salt",
-                "password"
-            ])
+            player_dict = player.to_dict(
+                exclude=["salt", "password"],
+                with_collections=True
+            )
             player_dict['birthday'] = str(player_dict['birthday'])
 
         return player_dict

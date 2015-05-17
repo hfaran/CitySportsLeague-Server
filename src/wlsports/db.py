@@ -20,6 +20,8 @@ class Player(database.Entity):
     country = Required(str)
     bio = Optional(LongStr)
 
+    accepted_games = Set("Game", reverse="accepted_players")
+
 
 class Sport(database.Entity):
     name = PrimaryKey(str)
@@ -36,10 +38,14 @@ class Team(database.Entity):
 
 class Game(database.Entity):
     id = PrimaryKey(int, auto=True)
-    location = Required(str)
-    date = Required(date)
-    final_score = Required(str)
     teams = Set(Team)
+
+    location = Optional(str)
+    date = Optional(date)
+    cancelled = Optional(bool)
+    final_score = Optional(str)
+
+    accepted_players = Set(Player, reverse="accepted_games")
 
 
 def _bind_db(db="../welikesports.sqlite", debug=True):
