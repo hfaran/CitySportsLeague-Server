@@ -337,7 +337,7 @@ Search for players whose name starts with query
 {
     "properties": {
         "game_id": {
-            "type": "string"
+            "type": "number"
         }
     },
     "type": "object"
