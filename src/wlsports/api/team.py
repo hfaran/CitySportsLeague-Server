@@ -111,7 +111,7 @@ class Team(APIHandler):
             team_dict = team.to_dict(with_collections=True)
             team_dict["usernames"] = team_dict.pop("users")
             rankings = {k: i for i, (k, v) in enumerate(sorted(
-                get_team_rankings(team).items(),
+                get_team_rankings(team, filter_for_matchmaking=False).items(),
                 key=lambda x: x[1]
             ))}
             my_ranking = rankings[team.name]
@@ -188,7 +188,7 @@ class Matchmake(APIHandler):
             return {"game_id": game.id}
 
 
-def get_team_rankings(myteam):
+def get_team_rankings(myteam, filter_for_matchmaking=True):
     team_name = myteam.name
     sport_name = myteam.sport.name
     if myteam is None:
@@ -205,19 +205,21 @@ def get_team_rankings(myteam):
     sport_teams = select(team for team in TeamEntity
                          if team.sport.name == sport_name)[:]
     print sport_teams, [[player.username for player in team.users] for team in sport_teams ]
-    myteam_names = [player.username for player in myteam.users]
-    print myteam_names
-    sport_teams = [team for team in sport_teams if all(
-        player.username not in myteam_names for player in team.users
-    )]
-    print sport_teams
-    sport_teams.append(myteam)
-    num_teams = len(sport_teams)
-    api_assert(
-        num_teams > 1,
-        409,
-        "There are no other teams with all different people!"
-    )
+
+    if filter_for_matchmaking:
+        myteam_names = [player.username for player in myteam.users]
+        print myteam_names
+        sport_teams = [team for team in sport_teams if all(
+            player.username not in myteam_names for player in team.users
+        )]
+        print sport_teams
+        sport_teams.append(myteam)
+        num_teams = len(sport_teams)
+        api_assert(
+            num_teams > 1,
+            409,
+            "There are no other teams with all different people!"
+        )
 
     overall_rankings = defaultdict(lambda: 0)
 
