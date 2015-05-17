@@ -83,6 +83,170 @@ Should be obvious from status code (403 vs. 200).
 <br>
 <br>
 
+# /api/game/dateandloc/?
+
+    Content-Type: application/json
+
+## POST
+
+
+**Input Schema**
+```json
+{
+    "properties": {
+        "date": {
+            "type": "string"
+        },
+        "id": {
+            "type": "number"
+        },
+        "location": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "date",
+        "location",
+        "id"
+    ],
+    "type": "object"
+}
+```
+
+
+
+**Output Schema**
+```json
+{
+    "properties": {
+        "date": {
+            "type": "string"
+        },
+        "id": {
+            "type": "number"
+        },
+        "location": {
+            "type": "string"
+        }
+    },
+    "type": "object"
+}
+```
+
+
+
+**Notes**
+
+Update date and location of game
+
+
+
+<br>
+<br>
+
+# /api/game/game/\(?P\<game\_id\>\[a\-zA\-Z0\-9\_\]\+\)/?$
+
+    Content-Type: application/json
+
+## GET
+
+
+**Input Schema**
+```json
+null
+```
+
+
+
+**Output Schema**
+```json
+{
+    "properties": {
+        "accepted_players": {
+            "type": "array"
+        },
+        "cancelled": {
+            "type": "boolean"
+        },
+        "date": {
+            "type": "string"
+        },
+        "final_score": {
+            "type": "string"
+        },
+        "host": {
+            "type": "string"
+        },
+        "id": {
+            "type": "number"
+        },
+        "location": {
+            "type": "string"
+        },
+        "teams": {
+            "type": "array"
+        }
+    },
+    "type": "object"
+}
+```
+
+
+
+**Notes**
+
+GET game with game_id
+
+
+
+<br>
+<br>
+
+# /api/game/inviterespond/?
+
+    Content-Type: application/json
+
+## POST
+
+
+**Input Schema**
+```json
+{
+    "properties": {
+        "decision": {
+            "enum": [
+                "Accept",
+                "Decline"
+            ]
+        },
+        "id": {
+            "type": "number"
+        }
+    },
+    "type": "object"
+}
+```
+
+
+
+**Output Schema**
+```json
+{
+    "type": "string"
+}
+```
+
+
+
+**Notes**
+
+Decline or accept invite
+
+
+
+<br>
+<br>
+
 # /api/player/invitations/?
 
     Content-Type: application/json
@@ -150,6 +314,9 @@ null
         },
         "first": {
             "type": "string"
+        },
+        "games_hosted": {
+            "type": "array"
         },
         "gender": {
             "type": "string"
