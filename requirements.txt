@@ -2,3 +2,4 @@ Tornado-JSON
 python-social-auth
 click
 bcrypt
+pony
