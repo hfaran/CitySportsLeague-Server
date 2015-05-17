@@ -148,6 +148,13 @@ class Matchmake(APIHandler):
                     .format(team_name)
                 )
 
+            api_assert(
+                PlayerEntity[self.get_current_user()] in myteam.users,
+                403,
+                log_message="You can only matchmake for teams that you are"
+                            " a part of!"
+            )
+
             ### Figure out rival team
 
             # Find teams that are of the same sport and also

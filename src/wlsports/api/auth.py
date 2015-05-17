@@ -64,7 +64,7 @@ class PlayerLogin(APIHandler):
         else:
             raise APIError(
                 400,
-                log_message="Bad student_number/password combo"
+                log_message="Bad username/password combo"
             )
 
     @schema.validate(
