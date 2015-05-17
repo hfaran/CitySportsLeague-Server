@@ -1,7 +1,7 @@
 import bcrypt
 from tornado_json.exceptions import api_assert, APIError
 from tornado_json import schema
-from pony.orm import db_session, CommitException
+from pony.orm import db_session, CommitException, select
 from tornado.web import authenticated
 
 from wlsports.db import Player as PlayerEntity
@@ -116,3 +116,29 @@ class Me(APIHandler):
             player_dict['birthday'] = str(player_dict['birthday'])
 
         return player_dict
+
+
+class Search(APIHandler):
+
+    @schema.validate(
+        input_schema={
+            "type": "object",
+            "properties": {
+                "query": {"type": "string"}
+            }
+        },
+        output_schema={
+            "type": "array"
+        }
+    )
+    def post(self):
+        """
+        Search for players whose name starts with query
+        """
+        with db_session:
+            usernames = select(
+                p.username for p in PlayerEntity
+                if p.username.startswith(self.body['query'])
+            )[:]
+
+        return usernames

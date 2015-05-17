@@ -227,3 +227,42 @@ PUT the required parameters to permanently register a new player
 * `bio`
 
 
+
+<br>
+<br>
+
+# /api/player/search/?
+
+    Content-Type: application/json
+
+## POST
+
+
+**Input Schema**
+```json
+{
+    "properties": {
+        "query": {
+            "type": "string"
+        }
+    },
+    "type": "object"
+}
+```
+
+
+
+**Output Schema**
+```json
+{
+    "type": "array"
+}
+```
+
+
+
+**Notes**
+
+Search for players whose name starts with query
+
+
