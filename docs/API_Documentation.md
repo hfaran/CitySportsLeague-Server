@@ -83,6 +83,38 @@ Should be obvious from status code (403 vs. 200).
 <br>
 <br>
 
+# /api/player/invitations/?
+
+    Content-Type: application/json
+
+## GET
+
+
+**Input Schema**
+```json
+null
+```
+
+
+
+**Output Schema**
+```json
+{
+    "type": "array"
+}
+```
+
+
+
+**Notes**
+
+GET array of IDs for open game invitations for self
+
+
+
+<br>
+<br>
+
 # /api/player/me/?
 
     Content-Type: application/json
@@ -101,6 +133,9 @@ null
 ```json
 {
     "properties": {
+        "accepted_games": {
+            "type": "array"
+        },
         "bio": {
             "type": "string"
         },
@@ -122,6 +157,9 @@ null
         "last": {
             "type": "string"
         },
+        "teams": {
+            "type": "array"
+        },
         "username": {
             "type": "string"
         }
@@ -135,6 +173,9 @@ null
 **Notes**
 
 (Player only) GET to retrieve player info
+
+* `games`: Array of game IDs that player has accepted
+* `teams`: Array of team names
 
 
 
@@ -270,6 +311,52 @@ Search for players whose name starts with query
 <br>
 <br>
 
+# /api/team/matchmake/?
+
+    Content-Type: application/json
+
+## POST
+
+
+**Input Schema**
+```json
+{
+    "properties": {
+        "team_name": {
+            "type": "string"
+        }
+    },
+    "type": "object"
+}
+```
+
+
+
+**Output Schema**
+```json
+{
+    "properties": {
+        "game_id": {
+            "type": "string"
+        }
+    },
+    "type": "object"
+}
+```
+
+
+
+**Notes**
+
+Does matchmaking by finding a rival team for the provided `team_name`,
+creates a new game with the two teams and returns the game_id
+for that game
+
+
+
+<br>
+<br>
+
 # /api/team/team/\(?P\<name\>\[a\-zA\-Z0\-9\_\]\+\)/?$
 
     Content-Type: application/json
@@ -324,7 +411,7 @@ Search for players whose name starts with query
 PUT to create a team
 
 * `name`
-* `usernames`: list of teammates to add (except yourself)
+* `usernames`: list of players in team (INCLUDING YOURSELF!!)
 * `sport`: One of "Basketball" or "Soccer"
 
 
@@ -425,7 +512,7 @@ Get team with `name`
 PUT to create a team
 
 * `name`
-* `usernames`: list of teammates to add (except yourself)
+* `usernames`: list of players in team (INCLUDING YOURSELF!!)
 * `sport`: One of "Basketball" or "Soccer"
 
 
