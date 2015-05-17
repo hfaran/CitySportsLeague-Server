@@ -152,3 +152,27 @@ class Search(APIHandler):
             )[:]
 
         return usernames
+
+
+class Invitations(APIHandler):
+
+    @authenticated
+    @schema.validate(
+        output_schema={
+            "type": "array"
+        }
+    )
+    def get(self):
+        """
+        GET array of IDs for open game invitations for self
+        """
+        username = self.get_current_user()
+
+        with db_session:
+            player = PlayerEntity[username]
+            teams = player.teams
+            team_games = [game for team in teams for game in team.games]
+            team_game_ids = {game.id for game in team_games}
+            player_accepted_ids = {game.id for game in player.accepted_games}
+
+            return list(team_game_ids - player_accepted_ids)
