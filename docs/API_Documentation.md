@@ -137,7 +137,64 @@ Should be obvious from status code (403 vs. 200).
 
 **Notes**
 
-Update date and location of game
+(Game host only) Update date and location of game
+
+* `date`: Must be in YYYY-MM-DD format
+* `location`
+* `id`: ID of game to change
+
+
+
+<br>
+<br>
+
+# /api/game/finish/?
+
+    Content-Type: application/json
+
+## POST
+
+
+**Input Schema**
+```json
+{
+    "properties": {
+        "final_score": {
+            "type": "object"
+        },
+        "id": {
+            "type": "number"
+        }
+    },
+    "type": "object"
+}
+```
+
+
+**Input Example**
+```json
+{
+    "final_score": {
+        "Blue": 3,
+        "Red": 5
+    },
+    "id": 1
+}
+```
+
+
+**Output Schema**
+```json
+{
+    "type": "string"
+}
+```
+
+
+
+**Notes**
+
+(Game host only) POST to finalize game
 
 
 
@@ -241,6 +298,9 @@ GET game with game_id
 **Notes**
 
 Decline or accept invite
+
+* `id`: ID of game you want to respond to invite for
+* `decision`: Either "Accept" or "Decline"
 
 
 
@@ -597,8 +657,17 @@ null
 ```json
 {
     "properties": {
+        "games": {
+            "type": "array"
+        },
+        "losses": {
+            "type": "number"
+        },
         "name": {
             "type": "string"
+        },
+        "points_ratio": {
+            "type": "number"
         },
         "sport": {
             "enum": [
@@ -606,8 +675,14 @@ null
                 "Soccer"
             ]
         },
+        "ties": {
+            "type": "number"
+        },
         "usernames": {
             "type": "array"
+        },
+        "wins": {
+            "type": "number"
         }
     },
     "type": "object"
@@ -698,8 +773,17 @@ null
 ```json
 {
     "properties": {
+        "games": {
+            "type": "array"
+        },
+        "losses": {
+            "type": "number"
+        },
         "name": {
             "type": "string"
+        },
+        "points_ratio": {
+            "type": "number"
         },
         "sport": {
             "enum": [
@@ -707,8 +791,14 @@ null
                 "Soccer"
             ]
         },
+        "ties": {
+            "type": "number"
+        },
         "usernames": {
             "type": "array"
+        },
+        "wins": {
+            "type": "number"
         }
     },
     "type": "object"

@@ -10,7 +10,7 @@ from tornado.web import authenticated
 
 from wlsports.db import Game as GameEntity
 from wlsports.db import Player as PlayerEntity
-from wlsports.db import Player as TeamEntity
+from wlsports.db import Team as TeamEntity
 from wlsports.handlers import APIHandler
 from wlsports.util import validate_date_text
 from wlsports.api.player import get_player_invitations
