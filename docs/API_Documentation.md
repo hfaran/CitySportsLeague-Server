@@ -266,3 +266,169 @@ PUT the required parameters to permanently register a new player
 Search for players whose name starts with query
 
 
+
+<br>
+<br>
+
+# /api/team/team/\(?P\<name\>\[a\-zA\-Z0\-9\_\]\+\)/?$
+
+    Content-Type: application/json
+
+## PUT
+
+
+**Input Schema**
+```json
+{
+    "properties": {
+        "name": {
+            "type": "string"
+        },
+        "usernames": {
+            "type": "array"
+        }
+    },
+    "type": "object"
+}
+```
+
+
+
+**Output Schema**
+```json
+{
+    "properties": {
+        "name": {
+            "type": "string"
+        }
+    },
+    "type": "object"
+}
+```
+
+
+
+**Notes**
+
+PUT to create a team
+
+* `name`
+* `usernames`: list of teammates to add (except yourself)
+
+
+
+## GET
+
+
+**Input Schema**
+```json
+null
+```
+
+
+
+**Output Schema**
+```json
+{
+    "properties": {
+        "name": {
+            "type": "string"
+        },
+        "usernames": {
+            "type": "array"
+        }
+    },
+    "type": "object"
+}
+```
+
+
+
+**Notes**
+
+Get team with `name`
+
+
+
+<br>
+<br>
+
+# /api/team/team/?
+
+    Content-Type: application/json
+
+## PUT
+
+
+**Input Schema**
+```json
+{
+    "properties": {
+        "name": {
+            "type": "string"
+        },
+        "usernames": {
+            "type": "array"
+        }
+    },
+    "type": "object"
+}
+```
+
+
+
+**Output Schema**
+```json
+{
+    "properties": {
+        "name": {
+            "type": "string"
+        }
+    },
+    "type": "object"
+}
+```
+
+
+
+**Notes**
+
+PUT to create a team
+
+* `name`
+* `usernames`: list of teammates to add (except yourself)
+
+
+
+## GET
+
+
+**Input Schema**
+```json
+null
+```
+
+
+
+**Output Schema**
+```json
+{
+    "properties": {
+        "name": {
+            "type": "string"
+        },
+        "usernames": {
+            "type": "array"
+        }
+    },
+    "type": "object"
+}
+```
+
+
+
+**Notes**
+
+Get team with `name`
+
+
