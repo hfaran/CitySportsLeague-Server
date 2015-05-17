@@ -24,13 +24,14 @@ class Player(database.Entity):
 class Sport(database.Entity):
     name = PrimaryKey(str)
     players_per_team = Required(int)
-    games = Set("Game")
+    teams = Set("Team")
 
 
 class Team(database.Entity):
     name = PrimaryKey(str)
     users = Set(Player)
     games = Set("Game")
+    sport = Required(Sport)
 
 
 class Game(database.Entity):
@@ -38,7 +39,6 @@ class Game(database.Entity):
     location = Required(str)
     date = Required(date)
     final_score = Required(str)
-    sport = Required(Sport)
     teams = Set(Team)
 
 

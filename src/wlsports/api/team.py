@@ -5,6 +5,7 @@ from tornado.web import authenticated
 
 from wlsports.db import Team as TeamEntity
 from wlsports.db import Player as PlayerEntity
+from wlsports.db import Sport as SportEntity
 from wlsports.handlers import APIHandler
 
 
@@ -17,7 +18,9 @@ class Team(APIHandler):
             "properties": {
                 "usernames": {"type": "array"},
                 "name": {"type": "string"},
-            }
+                "sport": {"enum": ["Basketball", "Soccer"]}
+            },
+            "required": ["usernames", "name", "sport"]
         },
         output_schema={
             "type": "object",
@@ -32,6 +35,7 @@ class Team(APIHandler):
 
         * `name`
         * `usernames`: list of teammates to add (except yourself)
+        * `sport`: One of "Basketball" or "Soccer"
         """
         attrs = dict(self.body)
 
@@ -61,10 +65,14 @@ class Team(APIHandler):
             player = PlayerEntity[self.get_current_user()]
             players.append(player)
 
+            # Get sport
+            sport = SportEntity[attrs['sport']]
+
             # Create team
             team = TeamEntity(
                 name=attrs['name'],
-                users=players
+                users=players,
+                sport=sport
             )
 
             return {'name': team.name}
@@ -75,6 +83,7 @@ class Team(APIHandler):
             "properties": {
                 "usernames": {"type": "array"},
                 "name": {"type": "string"},
+                "sport": {"enum": ["Basketball", "Soccer"]}
             }
         },
     )
@@ -93,8 +102,10 @@ class Team(APIHandler):
 
             usernames = [p.username for p in team.users]
             name = team.name
+            sport_name = team.sport.name
 
             return {
                 "usernames": usernames,
-                "name": name
+                "name": name,
+                "sport": sport_name
             }

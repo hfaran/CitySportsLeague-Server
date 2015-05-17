@@ -14,6 +14,7 @@ import tornado.ioloop
 from tornado_json.application import Application
 from tornado.log import enable_pretty_logging
 from tornado_json.routes import get_routes
+from pony.orm import db_session
 
 import wlsports.api
 import wlsports.db
@@ -88,6 +89,17 @@ def main(port, db, session_timeout_days, cookie_secret, debug):
         wlsports.db.sql_debug(True)
     wlsports.db.database.bind("sqlite", db, create_db=True)
     wlsports.db.database.generate_mapping(create_tables=True)
+    # Create sports if they don't exist
+    with db_session:
+        for name, players_per_team in [
+            ("Basketball", 5),
+            ("Soccer", 11)
+        ]:
+            if not wlsports.db.Sport.get(name=name):
+                wlsports.db.Sport(
+                    name=name,
+                    players_per_team=players_per_team
+                )
 
     settings = dict(
         template_path=os.path.join(
