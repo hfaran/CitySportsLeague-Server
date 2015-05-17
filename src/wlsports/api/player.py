@@ -2,6 +2,7 @@ import bcrypt
 from tornado_json.exceptions import api_assert, APIError
 from tornado_json import schema
 from pony.orm import db_session, CommitException
+from tornado.web import authenticated
 
 from wlsports.db import Player as PlayerEntity
 from wlsports.handlers import APIHandler
@@ -17,7 +18,7 @@ class Player(APIHandler):
                 "first": {"type": "string"},
                 "last": {"type": "string"},
                 "password": {"type": "string"},
-                "gender": {"type": "string"},
+                "gender": {"enum": ["M", "F"]},
                 "birthday": {"type": "string"},
                 "city": {"type": "string"},
                 "country": {"type": "string"},
@@ -82,3 +83,36 @@ class Player(APIHandler):
         )
 
         return {"username": player.username}
+
+
+class Me(APIHandler):
+
+    @authenticated
+    @schema.validate(
+        output_schema={
+            "type": "object",
+            "properties": {
+                "username": {"type": "string"},
+                "first": {"type": "string"},
+                "last": {"type": "string"},
+                "gender": {"type": "string"},
+                "birthday": {"type": "string"},
+                "city": {"type": "string"},
+                "country": {"type": "string"},
+                "bio": {"type": "string"},
+            }
+        }
+    )
+    def get(self):
+        """
+        (Player only) GET to retrieve player info
+        """
+        with db_session:
+            player = PlayerEntity[self.get_current_user()]
+            player_dict = player.to_dict(exclude=[
+                "salt",
+                "password"
+            ])
+            player_dict['birthday'] = str(player_dict['birthday'])
+
+        return player_dict

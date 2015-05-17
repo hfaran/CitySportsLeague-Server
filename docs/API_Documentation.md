@@ -2,6 +2,145 @@
 
 **Output schemas only represent `data` and not the full output; see output examples and the JSend specification.**
 
+# /api/auth/playerlogin/?
+
+    Content-Type: application/json
+
+## POST
+
+
+**Input Schema**
+```json
+{
+    "properties": {
+        "password": {
+            "type": "string"
+        },
+        "username": {
+            "type": "string"
+        }
+    },
+    "required": [
+        "username",
+        "password"
+    ],
+    "type": "object"
+}
+```
+
+
+
+**Output Schema**
+```json
+{
+    "properties": {
+        "username": {
+            "type": "string"
+        }
+    },
+    "type": "object"
+}
+```
+
+
+
+**Notes**
+
+POST the required credentials to get back a cookie
+
+* `username`: Username
+* `password`: Password
+
+
+
+## GET
+
+
+**Input Schema**
+```json
+null
+```
+
+
+
+**Output Schema**
+```json
+{
+    "type": "string"
+}
+```
+
+
+
+**Notes**
+
+GET to check if authenticated.
+
+Should be obvious from status code (403 vs. 200).
+
+
+
+<br>
+<br>
+
+# /api/player/me/?
+
+    Content-Type: application/json
+
+## GET
+
+
+**Input Schema**
+```json
+null
+```
+
+
+
+**Output Schema**
+```json
+{
+    "properties": {
+        "bio": {
+            "type": "string"
+        },
+        "birthday": {
+            "type": "string"
+        },
+        "city": {
+            "type": "string"
+        },
+        "country": {
+            "type": "string"
+        },
+        "first": {
+            "type": "string"
+        },
+        "gender": {
+            "type": "string"
+        },
+        "last": {
+            "type": "string"
+        },
+        "username": {
+            "type": "string"
+        }
+    },
+    "type": "object"
+}
+```
+
+
+
+**Notes**
+
+(Player only) GET to retrieve player info
+
+
+
+<br>
+<br>
+
 # /api/player/player/?
 
     Content-Type: application/json
@@ -29,7 +168,10 @@
             "type": "string"
         },
         "gender": {
-            "type": "string"
+            "enum": [
+                "M",
+                "F"
+            ]
         },
         "last": {
             "type": "string"
