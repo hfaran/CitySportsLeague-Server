@@ -177,7 +177,28 @@ class InviteRespond(APIHandler):
 
 class Finish(APIHandler):
 
+    @authenticated
+    @schema.validate(
+        input_schema={
+            "type": "object",
+            "properties": {
+                "id": {"type": "number"},
+                "final_score": {"type": "object"}
+            }
+        },
+        input_example={
+            "id": 1,
+            "final_score": {
+                "Red": 5,
+                "Blue": 3
+            }
+        },
+        output_schema={"type": "string"}
+    )
     def post(self):
+        """
+        (Game host only) POST to finalize game
+        """
         attrs = dict(self.body)
 
         with db_session:
@@ -244,3 +265,7 @@ class Finish(APIHandler):
 
             # Set final score
             game.final_score = json.dumps(final_score)
+
+            return "Game results recorded with final score: {}".format(
+                json.dumps(final_score)
+            )
