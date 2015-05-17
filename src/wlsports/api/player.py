@@ -106,7 +106,8 @@ class Me(APIHandler):
                 "country": {"type": "string"},
                 "bio": {"type": "string"},
                 "teams": {"type": "array"},
-                "accepted_games":{"type": "array"}
+                "accepted_games":{"type": "array"},
+                "games_hosted":{"type": "array"},
             }
         }
     )
@@ -167,15 +168,18 @@ class Invitations(APIHandler):
         GET array of IDs for open game invitations for self
         """
         username = self.get_current_user()
-
         with db_session:
-            player = PlayerEntity[username]
-            teams = player.teams
-            team_games = [game for team in teams for game in team.games]
-            # Get games that the team is added for that have not been
-            # cancelled
-            team_game_ids = {game.id for game in team_games
-                             if game.cancelled is not True}
-            player_accepted_ids = {game.id for game in player.accepted_games}
+            return get_player_invitations(username)
 
-            return list(team_game_ids - player_accepted_ids)
+
+def get_player_invitations(username):
+    player = PlayerEntity[username]
+    teams = player.teams
+    team_games = [game for team in teams for game in team.games]
+    # Get games that the team is added for that have not been
+    # cancelled
+    team_game_ids = {game.id for game in team_games
+                     if game.cancelled is not True}
+    player_accepted_ids = {game.id for game in player.accepted_games}
+
+    return list(team_game_ids - player_accepted_ids)

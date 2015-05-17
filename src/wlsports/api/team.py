@@ -209,7 +209,8 @@ class Matchmake(APIHandler):
 
             game = GameEntity(
                 teams=[myteam, rival_team],
-                host=PlayerEntity[self.get_current_user()]
+                host=PlayerEntity[self.get_current_user()],
+                accepted_players=[PlayerEntity[self.get_current_user()]]
             )
             commit()
 

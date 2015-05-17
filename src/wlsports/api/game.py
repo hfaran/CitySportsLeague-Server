@@ -5,8 +5,10 @@ from pony.orm import db_session, select, commit
 from tornado.web import authenticated
 
 from wlsports.db import Game as GameEntity
+from wlsports.db import Player as PlayerEntity
 from wlsports.handlers import APIHandler
 from wlsports.util import validate_date_text
+from wlsports.api.player import get_player_invitations
 
 
 class Game(APIHandler):
@@ -81,6 +83,11 @@ class DateAndLoc(APIHandler):
 
         with db_session:
             game = GameEntity.get(id=attrs['id'])
+            api_assert(
+                game is not None,
+                400,
+                log_message="No such game {} exists!".format(attrs['id'])
+            )
 
             api_assert(
                 game.host.username == self.get_current_user(),
@@ -88,11 +95,6 @@ class DateAndLoc(APIHandler):
                 log_message="Only the host of this game may edit it!"
             )
 
-            api_assert(
-                game is not None,
-                400,
-                log_message="No such game {} exists!".format(attrs['id'])
-            )
             try:
                 validate_date_text(attrs['date'])
             except ValueError as err:
@@ -113,3 +115,47 @@ class DateAndLoc(APIHandler):
             game_dict["date"] = str(game_dict["date"])
 
             return game_dict
+
+
+class InviteRespond(APIHandler):
+
+    @authenticated
+    @schema.validate(
+        input_schema={
+            "type": "object",
+            "properties": {
+                "id": {"type": "number"},
+                "decision": {"enum": ["Accept", "Decline"]},
+            }
+        },
+        output_schema={
+            "type": "string"
+        }
+    )
+    def post(self):
+        """Decline or accept invite"""
+        attrs = dict(self.body)
+
+        with db_session:
+            game = GameEntity.get(id=attrs['id'])
+            me = PlayerEntity[self.get_current_user()]
+            api_assert(
+                game is not None,
+                400,
+                log_message="No such game {} exists!".format(attrs['id'])
+            )
+            player_invites = get_player_invitations(me.username)
+            api_assert(
+                attrs['id'] in player_invites,
+                400,
+                log_message="This game is not in your list of invitations!"
+            )
+
+            if attrs['decision'] == "Accept":
+                game.accepted_players.add(me)
+                return "You successfully joined game {}!".format(attrs['id'])
+            elif attrs['decision'] == "Decline":
+                game.cancelled = True
+                return "You declined and the game ({}) has been cancelled!".format(
+                    attrs['id']
+                )
