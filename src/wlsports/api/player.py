@@ -1,7 +1,7 @@
 import bcrypt
-from tornado_json.exceptions import api_assert
+from tornado_json.exceptions import api_assert, APIError
 from tornado_json import schema
-from pony.orm import db_session
+from pony.orm import db_session, CommitException
 
 from wlsports.db import Player as PlayerEntity
 from wlsports.handlers import APIHandler
@@ -66,6 +66,12 @@ class Player(APIHandler):
 
         # Create player
         with db_session:
+            if PlayerEntity.get(username=attrs['username']):
+                raise APIError(
+                    409,
+                    log_message="Player with username {} already exists!"
+                    .format(attrs['username'])
+                )
             player = PlayerEntity(**attrs)
 
         # Log the user in

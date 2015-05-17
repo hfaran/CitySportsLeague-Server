@@ -40,3 +40,10 @@ class Game(database.Entity):
     final_score = Required(str)
     sport = Required(Sport)
     teams = Set(Team)
+
+
+def _bind_db(db="../welikesports.sqlite", debug=True):
+    if debug:
+        sql_debug(True)
+    database.bind("sqlite", db, create_db=True)
+    database.generate_mapping(create_tables=True)
