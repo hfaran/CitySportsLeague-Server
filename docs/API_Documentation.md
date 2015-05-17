@@ -284,10 +284,21 @@ Search for players whose name starts with query
         "name": {
             "type": "string"
         },
+        "sport": {
+            "enum": [
+                "Basketball",
+                "Soccer"
+            ]
+        },
         "usernames": {
             "type": "array"
         }
     },
+    "required": [
+        "usernames",
+        "name",
+        "sport"
+    ],
     "type": "object"
 }
 ```
@@ -314,6 +325,7 @@ PUT to create a team
 
 * `name`
 * `usernames`: list of teammates to add (except yourself)
+* `sport`: One of "Basketball" or "Soccer"
 
 
 
@@ -333,6 +345,12 @@ null
     "properties": {
         "name": {
             "type": "string"
+        },
+        "sport": {
+            "enum": [
+                "Basketball",
+                "Soccer"
+            ]
         },
         "usernames": {
             "type": "array"
@@ -367,10 +385,21 @@ Get team with `name`
         "name": {
             "type": "string"
         },
+        "sport": {
+            "enum": [
+                "Basketball",
+                "Soccer"
+            ]
+        },
         "usernames": {
             "type": "array"
         }
     },
+    "required": [
+        "usernames",
+        "name",
+        "sport"
+    ],
     "type": "object"
 }
 ```
@@ -397,6 +426,7 @@ PUT to create a team
 
 * `name`
 * `usernames`: list of teammates to add (except yourself)
+* `sport`: One of "Basketball" or "Soccer"
 
 
 
@@ -416,6 +446,12 @@ null
     "properties": {
         "name": {
             "type": "string"
+        },
+        "sport": {
+            "enum": [
+                "Basketball",
+                "Soccer"
+            ]
         },
         "usernames": {
             "type": "array"
