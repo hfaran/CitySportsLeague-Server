@@ -78,7 +78,12 @@ class DateAndLoc(APIHandler):
         }
     )
     def post(self):
-        """Update date and location of game"""
+        """(Game host only) Update date and location of game
+
+        * `date`: Must be in YYYY-MM-DD format
+        * `location`
+        * `id`: ID of game to change
+        """
         attrs = dict(self.body)
 
         with db_session:
@@ -133,7 +138,11 @@ class InviteRespond(APIHandler):
         }
     )
     def post(self):
-        """Decline or accept invite"""
+        """Decline or accept invite
+
+        * `id`: ID of game you want to respond to invite for
+        * `decision`: Either "Accept" or "Decline"
+        """
         attrs = dict(self.body)
 
         with db_session:
