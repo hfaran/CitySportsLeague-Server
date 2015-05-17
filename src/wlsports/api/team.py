@@ -86,7 +86,12 @@ class Team(APIHandler):
             "properties": {
                 "usernames": {"type": "array"},
                 "name": {"type": "string"},
-                "sport": {"enum": ["Basketball", "Soccer"]}
+                "sport": {"enum": ["Basketball", "Soccer"]},
+                "games": {"type": "array"},
+                "wins": {"type": "number"},
+                "losses": {"type": "number"},
+                "ties": {"type": "number"},
+                "points_ratio": {"type": "number"}
             }
         },
     )
@@ -103,15 +108,10 @@ class Team(APIHandler):
                     .format(name)
                 )
 
-            usernames = [p.username for p in team.users]
-            name = team.name
-            sport_name = team.sport.name
+            team_dict = team.to_dict(with_collections=True)
+            team_dict["usernames"] = team_dict.pop("users")
 
-            return {
-                "usernames": usernames,
-                "name": name,
-                "sport": sport_name
-            }
+            return team_dict
 
 
 class Matchmake(APIHandler):
