@@ -172,7 +172,10 @@ class Invitations(APIHandler):
             player = PlayerEntity[username]
             teams = player.teams
             team_games = [game for team in teams for game in team.games]
-            team_game_ids = {game.id for game in team_games}
+            # Get games that the team is added for that have not been
+            # cancelled
+            team_game_ids = {game.id for game in team_games
+                             if game.cancelled is not True}
             player_accepted_ids = {game.id for game in player.accepted_games}
 
             return list(team_game_ids - player_accepted_ids)
