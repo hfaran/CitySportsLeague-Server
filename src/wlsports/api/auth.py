@@ -33,6 +33,12 @@ class PlayerLogin(APIHandler):
         * `username`: Username
         * `password`: Password
         """
+        api_assert(
+            self.body['username'],
+            400,
+            log_message="Username field is empty!"
+        )
+
         with db_session:
             player = PlayerEntity.get(username=self.body['username'])
             api_assert(
