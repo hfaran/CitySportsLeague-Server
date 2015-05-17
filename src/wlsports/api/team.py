@@ -110,6 +110,12 @@ class Team(APIHandler):
 
             team_dict = team.to_dict(with_collections=True)
             team_dict["usernames"] = team_dict.pop("users")
+            rankings = {k: i for i, (k, v) in enumerate(sorted(
+                get_team_rankings(team).items(),
+                key=lambda x: x[1]
+            ))}
+            my_ranking = rankings[team.name]
+            team_dict["ranking"] = "{}/{}".format(my_ranking+1, len(rankings))
 
             return team_dict
 
@@ -140,57 +146,15 @@ class Matchmake(APIHandler):
         team_name = self.body['team_name']
         with db_session:
             myteam = TeamEntity.get(name=team_name)
-            sport_name = myteam.sport.name
-            if myteam is None:
-                raise APIError(
-                    400,
-                    log_message="Team with name {} does not exist!"
-                    .format(team_name)
-                )
-
             api_assert(
                 PlayerEntity[self.get_current_user()] in myteam.users,
                 403,
                 log_message="You can only matchmake for teams that you are"
                             " a part of!"
             )
-
-            ### Figure out rival team
-
-            # Find teams that are of the same sport and also
-            # that they don't contain any players from myteam
-            sport_teams = select(team for team in TeamEntity
-                                 if team.sport.name == sport_name)[:]
-            print sport_teams, [[player.username for player in team.users] for team in sport_teams ]
-            myteam_names = [player.username for player in myteam.users]
-            print myteam_names
-            sport_teams = [team for team in sport_teams if all(
-                player.username not in myteam_names for player in team.users
-            )]
-            print sport_teams
-            sport_teams.append(myteam)
-            num_teams = len(sport_teams)
-            api_assert(
-                num_teams > 1,
-                409,
-                "There are no other teams with all different people!"
-            )
-
-            overall_rankings = defaultdict(lambda: 0)
-
-            teams_wlratio = sorted([
-                (team, float(team.wins) / (team.losses or 1))
-                for team in sport_teams
-            ], key=lambda t: t[1], reverse=True)
-            for i, (team, wlratio) in enumerate(teams_wlratio):
-                overall_rankings[team.name] += i
-            teams_pointsratio = sorted([
-                (team, team.points_ratio) for team in sport_teams
-            ], key=lambda t: t[1], reverse=True)
-            for i, (team, points_ratio) in enumerate(teams_pointsratio):
-                overall_rankings[team.name] += i
-
+            overall_rankings = get_team_rankings(myteam)
             myranking = overall_rankings[myteam.name]
+
             ranking_vals = overall_rankings.values()
             rankings_by_ranking = invert_dict_nonunique(overall_rankings)
 
@@ -222,3 +186,51 @@ class Matchmake(APIHandler):
             commit()
 
             return {"game_id": game.id}
+
+
+def get_team_rankings(myteam):
+    team_name = myteam.name
+    sport_name = myteam.sport.name
+    if myteam is None:
+        raise APIError(
+            400,
+            log_message="Team with name {} does not exist!"
+            .format(team_name)
+        )
+
+    ### Figure out rival team
+
+    # Find teams that are of the same sport and also
+    # that they don't contain any players from myteam
+    sport_teams = select(team for team in TeamEntity
+                         if team.sport.name == sport_name)[:]
+    print sport_teams, [[player.username for player in team.users] for team in sport_teams ]
+    myteam_names = [player.username for player in myteam.users]
+    print myteam_names
+    sport_teams = [team for team in sport_teams if all(
+        player.username not in myteam_names for player in team.users
+    )]
+    print sport_teams
+    sport_teams.append(myteam)
+    num_teams = len(sport_teams)
+    api_assert(
+        num_teams > 1,
+        409,
+        "There are no other teams with all different people!"
+    )
+
+    overall_rankings = defaultdict(lambda: 0)
+
+    teams_wlratio = sorted([
+        (team, float(team.wins) / (team.losses or 1))
+        for team in sport_teams
+    ], key=lambda t: t[1], reverse=True)
+    for i, (team, wlratio) in enumerate(teams_wlratio):
+        overall_rankings[team.name] += i
+    teams_pointsratio = sorted([
+        (team, team.points_ratio) for team in sport_teams
+    ], key=lambda t: t[1], reverse=True)
+    for i, (team, points_ratio) in enumerate(teams_pointsratio):
+        overall_rankings[team.name] += i
+
+    return overall_rankings
