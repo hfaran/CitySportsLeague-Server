@@ -3,13 +3,14 @@ from random import choice, randint
 
 from tornado_json.exceptions import api_assert, APIError
 from tornado_json import schema
-from pony.orm import db_session, CommitException, select
+from pony.orm import db_session, CommitException, select, commit
 from tornado.web import authenticated
 
 from wlsports.db import Team as TeamEntity
 from wlsports.db import Player as PlayerEntity
 from wlsports.db import Sport as SportEntity
-from wlsports.db import Sport as GameEntity
+from wlsports.db import Game as GameEntity
+
 from wlsports.handlers import APIHandler
 from wlsports.util import invert_dict_nonunique
 
@@ -126,7 +127,7 @@ class Matchmake(APIHandler):
         output_schema={
             "type": "object",
             "properties": {
-                "game_id": {"type": "string"}
+                "game_id": {"type": "number"}
             }
         }
     )
@@ -153,12 +154,14 @@ class Matchmake(APIHandler):
             # that they don't contain any players from myteam
             sport_teams = select(team for team in TeamEntity
                                  if team.sport.name == sport_name)[:]
-            print sport_teams, [player.username for team in sport_teams for player in team.users]
+            print sport_teams, [[player.username for player in team.users] for team in sport_teams ]
             myteam_names = [player.username for player in myteam.users]
+            print myteam_names
             sport_teams = [team for team in sport_teams if all(
                 player.username not in myteam_names for player in team.users
             )]
             print sport_teams
+            sport_teams.append(myteam)
             num_teams = len(sport_teams)
             api_assert(
                 num_teams > 1,
@@ -169,7 +172,7 @@ class Matchmake(APIHandler):
             overall_rankings = defaultdict(lambda: 0)
 
             teams_wlratio = sorted([
-                (team, float(team.wins) / team.losses)
+                (team, float(team.wins) / (team.losses or 1))
                 for team in sport_teams
             ], key=lambda t: t[1], reverse=True)
             for i, (team, wlratio) in enumerate(teams_wlratio):
@@ -182,22 +185,32 @@ class Matchmake(APIHandler):
 
             myranking = overall_rankings[myteam.name]
             ranking_vals = overall_rankings.values()
+            rankings_by_ranking = invert_dict_nonunique(overall_rankings)
 
             who_you_verse_index = None
-            while (who_you_verse_index not in ranking_vals or
-                   who_you_verse_index == myranking):
-                who_you_verse_index = randint(
-                    max(myranking - 5, 1),
-                    min(myranking + 5, num_teams - 2)
-                )
+            print(overall_rankings)
+            while (who_you_verse_index not in ranking_vals):
+                print(who_you_verse_index)
+                from time import sleep
+                sleep(0.4)
+                if len(rankings_by_ranking) == 1:
+                    who_you_verse_index = myranking
+                else:
+                    who_you_verse_index = choice(
+                        [rval for rval in ranking_vals
+                         if rval != myranking and
+                         abs(rval - myranking) <= 10]
+                    )
 
-            rankings_by_ranking = invert_dict_nonunique(overall_rankings)
             rival_team_name = rankings_by_ranking[who_you_verse_index][0]
+            if rival_team_name == myteam.name:
+                rival_team_name = rankings_by_ranking[who_you_verse_index][1]
             rival_team = TeamEntity[rival_team_name]
 
             game = GameEntity(
                 teams=[myteam, rival_team],
                 host=PlayerEntity[self.get_current_user()]
             )
+            commit()
 
-            return {"game_id", game.id}
+            return {"game_id": game.id}
